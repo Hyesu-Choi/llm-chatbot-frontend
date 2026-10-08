@@ -15,10 +15,14 @@ React 19 · Vite 8 · TypeScript · Tailwind v4 · zustand.
 | Node.js | 24 (20 이상이면 됨) | `brew install node` 또는 nvm |
 | npm | 11 | Node에 포함 |
 
-그리고 **백엔드가 먼저 떠 있어야** 합니다. 순서:
+그리고 **백엔드가 먼저 떠 있어야** 합니다. 새 컴퓨터라면 백엔드 README의
+["새 컴퓨터에서 처음 시작하기"](../llm-chatbot-backend/README.md#새-컴퓨터에서-처음-시작하기)를 위에서부터 따라 하세요
+(Ollama 모델 받기 → `.env` 설정 → DB 켜기 → 마이그레이션 → 백엔드 실행 → 프론트 실행이 한 번에 정리돼 있습니다).
 
-1. Ollama 실행 + 모델 받기: `ollama pull gemma3:4b` (백엔드 README 참고)
-2. 백엔드: `cd ../llm-chatbot-backend && uv run uvicorn app.main:app --reload --port 8000`
+이미 설치된 컴퓨터에서 다시 켤 때:
+
+1. `brew services run ollama`
+2. 백엔드: `cd ../llm-chatbot-backend && docker compose up -d && uv run uvicorn app.main:app --reload --port 8000`
 3. 프론트: 아래 참고
 
 ## 2. 서버 실행
