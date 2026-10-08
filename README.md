@@ -85,13 +85,18 @@ src/
     types.ts                    User, Credentials
   features/chat/                ← 채팅
     ChatApp.tsx                 사이드바(ThreadList + UserMenu) + Thread 레이아웃
-    ChatRuntimeProvider.tsx     useLocalRuntime(chatModelAdapter)
+    ChatRuntimeProvider.tsx     useRemoteThreadListRuntime(대화 목록 서버 저장) + 대화별 useLocalRuntime
+    conversationListAdapter.ts  대화 목록 ↔ /api/conversations (목록 · 생성 · 제목 · 보관 · 삭제)
+    ConversationHistoryProvider.tsx  대화별 메시지 불러오기(load) · 저장(append/update)
+    conversationApi.ts          /api/conversations 호출 함수
+    messageText.ts              assistant-ui 메시지에서 텍스트만 추출
     chatModelAdapter.ts         assistant-ui 메시지 → 백엔드 요청, 누적 텍스트 yield
     streamChatReply.ts          POST /api/chat 스트림 읽기, 오류 JSON → Error (401은 UnauthorizedError)
     ThreadWelcome.tsx           빈 스레드 환영 화면 + 추천 질문 4개
     types.ts                    ChatMessage 타입
   components/assistant-ui/      assistant-ui 프리셋 (shadcn CLI 생성, 직접 수정 최소화)
   components/ui/                shadcn/ui 컴포넌트
+  lib/apiClient.ts              fetch 래퍼: JSON 요청, {"error"} → Error / UnauthorizedError
   lib/utils.ts                  cn()
 ```
 
@@ -101,7 +106,7 @@ src/
 2. 로그인 · 가입 성공 → 백엔드가 `access_token` 쿠키(httpOnly)를 내려주고 `authStore`가 loggedIn
 3. 이후 `/api/*` 요청에는 브라우저가 쿠키를 자동으로 붙임 (프론트 코드에서 토큰을 다루지 않음)
 4. 대화 중 401(쿠키 만료) → `chatModelAdapter`가 `clearUser()` → 로그인 화면
-5. 로그아웃하면 채팅 화면이 언마운트되면서 메모리의 대화도 함께 사라짐
+5. 로그아웃하면 채팅 화면이 언마운트됨 → 다른 계정으로 로그인하면 그 계정의 대화 목록을 새로 불러옴
 
 ### 데이터 흐름 (채팅)
 
@@ -111,7 +116,15 @@ src/
 4. assistant-ui가 마크다운으로 렌더링
 
 > assistant-ui의 `ChatModelAdapter.run`은 델타가 아니라 **지금까지의 전체 텍스트**를
-> 매번 yield해야 합니다. 대화 기록은 브라우저 메모리에만 있고 새로고침하면 사라집니다.
+> 매번 yield해야 합니다.
+
+### 대화 저장 흐름
+
+1. 앱을 열면 `conversationListAdapter.list()` → 사이드바 목록
+2. 대화를 클릭하면 `ConversationHistoryProvider`의 `load()` → 그 대화의 메시지 불러오기
+3. 새 대화에서 첫 질문 → `initialize()`로 서버에 대화 생성 → 질문 · 답변마다 `append()`로 PUT 저장
+4. 첫 답변이 끝나면 `generateTitle()`이 첫 질문 앞 30자로 제목을 정해 PATCH로 저장
+5. 사이드바 `...` 메뉴의 이름 바꾸기 · 보관 · 삭제도 각각 PATCH / DELETE
 
 ## 6. 커스터마이징
 

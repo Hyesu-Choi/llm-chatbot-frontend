@@ -1,4 +1,4 @@
-import { UnauthorizedError } from "@/features/auth/authApi";
+import { toApiError } from "@/lib/apiClient";
 import type { ChatMessage } from "./types";
 
 // 백엔드 POST /api/chat 을 호출하고, 응답 본문이 도착하는 대로 텍스트 조각을 하나씩 내보낸다.
@@ -18,12 +18,10 @@ export async function* streamChatReply(
   // 백엔드 오류는 {"error": "..."} JSON으로 온다 (app/routers/chat.py).
   // 프록시 오류처럼 JSON이 아닌 응답이면 .json()이 실패하므로 catch로 대체 메시지를 만든다.
   // 여기서 throw 하면 assistant-ui가 받아서 말풍선에 오류를 표시한다.
+  // 백엔드 오류는 {"error": "..."} JSON으로 온다. 401이면 UnauthorizedError가 되어
+  // chatModelAdapter가 로그인 화면으로 보낼 수 있다 (lib/apiClient.ts).
   if (!response.ok || !response.body) {
-    const { error } = await response
-      .json()
-      .catch(() => ({ error: `요청 실패 (${response.status})` }));
-    // 401: 쿠키가 만료됐거나 없음. 받는 쪽(chatModelAdapter)이 로그인 화면으로 보낼 수 있게 종류를 구분한다
-    throw response.status === 401 ? new UnauthorizedError(error) : new Error(error);
+    throw await toApiError(response);
   }
 
   // response.body는 ReadableStream. reader로 도착한 바이트 덩어리(Uint8Array)를 하나씩 읽는다.

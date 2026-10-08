@@ -1,6 +1,7 @@
 import type { ChatModelAdapter, ThreadMessage } from "@assistant-ui/react";
-import { UnauthorizedError } from "@/features/auth/authApi";
 import { useAuthStore } from "@/features/auth/authStore";
+import { UnauthorizedError } from "@/lib/apiClient";
+import { messageText } from "./messageText";
 import { streamChatReply } from "./streamChatReply";
 import type { ChatMessage } from "./types";
 
@@ -40,10 +41,7 @@ function toChatMessages(messages: readonly ThreadMessage[]): ChatMessage[] {
     .map((message) => ({
       // 위 filter로 role이 좁혀졌지만 TypeScript가 그걸 추론하지 못해서 as로 알려준다
       role: message.role as ChatMessage["role"],
-      content: message.content
-        .filter((part) => part.type === "text")
-        .map((part) => part.text)
-        .join(""),
+      content: messageText(message),
     }))
     // 내용이 빈 메시지(예: 오류로 비어버린 답변)는 보내지 않는다
     .filter((message) => message.content.length > 0);
