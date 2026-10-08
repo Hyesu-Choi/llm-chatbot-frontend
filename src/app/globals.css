@@ -1,0 +1,253 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "tw-shimmer";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-toss-blue: var(--toss-blue);
+  --color-toss-blue-light: var(--toss-blue-light);
+  --color-toss-blue-dark: var(--toss-blue-dark);
+  --color-foreground: var(--foreground);
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-heading: var(--font-sans);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-sidebar-border: var(--sidebar-border);
+
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+
+  --color-sidebar-accent: var(--sidebar-accent);
+
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+
+  --color-sidebar-primary: var(--sidebar-primary);
+
+  --color-sidebar-foreground: var(--sidebar-foreground);
+
+  --color-sidebar: var(--sidebar);
+
+  --color-chart-5: var(--chart-5);
+
+  --color-chart-4: var(--chart-4);
+
+  --color-chart-3: var(--chart-3);
+
+  --color-chart-2: var(--chart-2);
+
+  --color-chart-1: var(--chart-1);
+
+  --color-ring: var(--ring);
+
+  --color-input: var(--input);
+
+  --color-border: var(--border);
+
+  --color-destructive: var(--destructive);
+
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-accent: var(--accent);
+
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-muted: var(--muted);
+
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-secondary: var(--secondary);
+
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-primary: var(--primary);
+
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-popover: var(--popover);
+
+  --color-card-foreground: var(--card-foreground);
+
+  --color-card: var(--card);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+
+  --radius-md: calc(var(--radius) * 0.8);
+
+  --radius-lg: var(--radius);
+
+  --radius-xl: calc(var(--radius) * 1.4);
+
+  --radius-2xl: calc(var(--radius) * 1.8);
+
+  --radius-3xl: calc(var(--radius) * 2.2);
+
+  --radius-4xl: calc(var(--radius) * 2.6)
+;
+  @keyframes collapsible-down {
+  from {
+    height: 0;}
+  to {
+    height: var(--radix-collapsible-content-height, var(--collapsible-panel-height, auto));}}
+  @keyframes collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height, var(--collapsible-panel-height, auto));}
+  to {
+    height: 0;}}}
+
+body {
+  font-family: var(--font-sans);
+  letter-spacing: -0.01em;
+}
+
+:root {
+  --toss-blue: #3182f6;
+  --toss-blue-light: #e8f3ff;
+  --toss-blue-dark: #1b64da;
+
+  --background: #ffffff;
+  --foreground: #191f28;
+  --card: #ffffff;
+  --card-foreground: #191f28;
+  --popover: #ffffff;
+  --popover-foreground: #191f28;
+  --primary: var(--toss-blue);
+  --primary-foreground: #ffffff;
+  --secondary: #f2f4f6;
+  --secondary-foreground: #333d4b;
+  --muted: #f2f4f6;
+  --muted-foreground: #6b7684;
+  --accent: #f2f4f6;
+  --accent-foreground: #191f28;
+  --destructive: #f04452;
+  --border: #e5e8eb;
+  --input: #e5e8eb;
+  --ring: var(--toss-blue);
+  --chart-1: #3182f6;
+  --chart-2: #6b7684;
+  --chart-3: #4e5968;
+  --chart-4: #333d4b;
+  --chart-5: #191f28;
+  --radius: 1rem;
+  --sidebar: #f9fafb;
+  --sidebar-foreground: #191f28;
+  --sidebar-primary: var(--toss-blue);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f2f4f6;
+  --sidebar-accent-foreground: #191f28;
+  --sidebar-border: #f2f4f6;
+  --sidebar-ring: var(--toss-blue);
+}
+
+.dark {
+  --toss-blue: #4593fc;
+  --toss-blue-light: rgb(69 147 252 / 16%);
+  --toss-blue-dark: #74acfd;
+
+  --background: #17171c;
+  --foreground: #e4e4e5;
+  --card: #202027;
+  --card-foreground: #e4e4e5;
+  --popover: #202027;
+  --popover-foreground: #e4e4e5;
+  --primary: var(--toss-blue);
+  --primary-foreground: #ffffff;
+  --secondary: #2c2c35;
+  --secondary-foreground: #e4e4e5;
+  --muted: #2c2c35;
+  --muted-foreground: #9e9ea4;
+  --accent: #2c2c35;
+  --accent-foreground: #e4e4e5;
+  --destructive: #f66570;
+  --border: rgb(255 255 255 / 8%);
+  --input: rgb(255 255 255 / 12%);
+  --ring: var(--toss-blue);
+  --chart-1: #4593fc;
+  --chart-2: #9e9ea4;
+  --chart-3: #7e7e87;
+  --chart-4: #62626d;
+  --chart-5: #4d4d59;
+  --sidebar: #1c1c22;
+  --sidebar-foreground: #e4e4e5;
+  --sidebar-primary: var(--toss-blue);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2c2c35;
+  --sidebar-accent-foreground: #e4e4e5;
+  --sidebar-border: rgb(255 255 255 / 6%);
+  --sidebar-ring: var(--toss-blue);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;}
+  body {
+    @apply bg-background text-foreground;}
+  html {
+    @apply font-sans;}}
+
+@custom-variant data-open (&:where([data-state="open"], [data-open]:not([data-open="false"])));
+
+@custom-variant data-closed (&:where([data-state="closed"], [data-closed]:not([data-closed="false"])));
+
+.aui-composer-root {
+  --composer-bg: var(--muted);
+  --composer-radius: 1.25rem;
+  --composer-padding: 10px;
+}
+[data-slot="aui_composer-shell"] {
+  border-color: transparent;
+  transition:
+    background-color 0.2s,
+    box-shadow 0.2s;
+}
+[data-slot="aui_composer-shell"]:focus-within {
+  border-color: transparent;
+  background: var(--background);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+.aui-composer-send,
+.aui-composer-cancel {
+  width: 2.25rem;
+  height: 2.25rem;
+  transition: transform 0.1s;
+}
+.aui-composer-send:active,
+.aui-composer-cancel:active {
+  transform: scale(0.94);
+}
+
+.aui-user-message-content {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 1.25rem 1.25rem 0.375rem 1.25rem;
+  padding: 0.625rem 1rem;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+[data-slot="aui_assistant-message-content"] {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--secondary-foreground);
+}
+
+[data-slot="aui_thread-list-new"] {
+  height: 2.75rem;
+  border-radius: 0.875rem;
+  background: var(--toss-blue-light);
+  color: var(--toss-blue-dark);
+  font-weight: 600;
+  transition: transform 0.1s;
+}
+[data-slot="aui_thread-list-new"]:hover {
+  background: var(--toss-blue-light);
+  filter: brightness(0.97);
+}
+[data-slot="aui_thread-list-new"]:active {
+  transform: scale(0.98);
+}
