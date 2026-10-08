@@ -83,6 +83,11 @@ src/
     authApi.ts                  signup · login · logout · fetchMe, UnauthorizedError
     validation.ts               이메일 · 비밀번호 규칙 (백엔드와 같은 길이)
     types.ts                    User, Credentials
+  features/documents/           ← 내 문서 (RAG)
+    DocumentsDialog.tsx         올리기 · 목록 · 삭제 다이얼로그 (토스 스타일)
+    DocumentRow.tsx             문서 한 줄 (이름 · 글자 수 · 조각 수 · 날짜 · 삭제)
+    DocumentsButtons.tsx        사이드바 "내 문서" 버튼, 모바일 헤더 아이콘
+    documentApi.ts              GET · POST(multipart) · DELETE /api/documents
   features/chat/                ← 채팅
     ChatApp.tsx                 사이드바(ThreadList + UserMenu) + 헤더(역할 · 모델 선택) + Thread 레이아웃
     PersonaSelect.tsx           역할 드롭다운 (GET /api/personas)
@@ -96,6 +101,7 @@ src/
     ConversationHistoryProvider.tsx  대화별 메시지 불러오기(load) · 저장(append/update)
     conversationApi.ts          /api/conversations 호출 함수
     messageText.ts              assistant-ui 메시지에서 텍스트만 추출
+    ragSources.ts               X-RAG-Sources 헤더 읽기 → 답변 끝 "📎 참고한 문서" 문구
     chatModelAdapter.ts         assistant-ui 메시지 → 백엔드 요청, 누적 텍스트 yield
     streamChatReply.ts          POST /api/chat 스트림 읽기, 오류 JSON → Error (401은 UnauthorizedError)
     ThreadWelcome.tsx           빈 스레드 환영 화면 + 추천 질문 4개
@@ -119,6 +125,7 @@ src/
 1. 사용자가 입력 → assistant-ui가 `chatModelAdapter.run()` 호출
 2. 어댑터가 스레드 메시지를 `{role, content}[]`로 바꾸고, 선택한 모델 · 역할과 함께 `streamChatReply()`에 전달
 3. `fetch("/api/chat")` 스트림을 읽으며 조각을 누적해 매번 전체 텍스트를 yield
+   - 응답 헤더 `X-RAG-Sources`가 있으면 스트림이 끝난 뒤 "📎 참고한 문서" 줄을 덧붙임 (저장되는 답변에도 포함)
 4. assistant-ui가 마크다운으로 렌더링
 
 > assistant-ui의 `ChatModelAdapter.run`은 델타가 아니라 **지금까지의 전체 텍스트**를

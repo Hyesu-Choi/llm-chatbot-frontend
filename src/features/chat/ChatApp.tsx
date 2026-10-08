@@ -2,6 +2,7 @@ import { ThreadList } from "@/components/assistant-ui/elements/thread-list.aui";
 import { Thread } from "@/components/assistant-ui/elements/thread.aui";
 import { AssistantMark } from "@/components/AssistantMark";
 import { LogoutIconButton, UserMenu } from "@/features/auth/UserMenu";
+import { DocumentsIconButton, DocumentsSidebarButton } from "@/features/documents/DocumentsButtons";
 import { ChatRuntimeProvider } from "./ChatRuntimeProvider";
 import { ModelSelect } from "./ModelSelect";
 import { PersonaSelect } from "./PersonaSelect";
@@ -19,7 +20,10 @@ export function ChatApp() {
           <div className="min-h-0 flex-1 overflow-y-auto">
             <ThreadList />
           </div>
-          <UserMenu />
+          <div className="flex flex-col gap-2">
+            <DocumentsSidebarButton />
+            <UserMenu />
+          </div>
         </aside>
         <section className="flex min-w-0 flex-1 flex-col">
           <header className="flex h-14 shrink-0 items-center justify-between gap-3 pr-3 pl-5 md:justify-start md:px-6">
@@ -27,7 +31,8 @@ export function ChatApp() {
             <div className="flex min-w-0 items-center gap-1.5">
               <PersonaSelect />
               <ModelSelect />
-              <div className="md:hidden">
+              <div className="flex md:hidden">
+                <DocumentsIconButton />
                 <LogoutIconButton />
               </div>
             </div>

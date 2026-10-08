@@ -1,4 +1,5 @@
 import { toApiError } from "@/lib/apiClient";
+import { formatRagSources, parseRagSources, RAG_SOURCES_HEADER } from "./ragSources";
 import type { ChatMessage } from "./types";
 
 // 백엔드 POST /api/chat 을 호출하고, 응답 본문이 도착하는 대로 텍스트 조각을 하나씩 내보낸다.
@@ -42,4 +43,7 @@ export async function* streamChatReply(
   // 마지막 조각이 멀티바이트 문자 중간에서 끊겼을 때 남은 바이트를 흘려보낸다
   const rest = decoder.decode();
   if (rest) yield rest;
+
+  const sources = parseRagSources(response.headers.get(RAG_SOURCES_HEADER));
+  if (sources.length > 0) yield formatRagSources(sources);
 }
