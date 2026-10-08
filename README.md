@@ -84,7 +84,10 @@ src/
     validation.ts               이메일 · 비밀번호 규칙 (백엔드와 같은 길이)
     types.ts                    User, Credentials
   features/chat/                ← 채팅
-    ChatApp.tsx                 사이드바(ThreadList + UserMenu) + Thread 레이아웃
+    ChatApp.tsx                 사이드바(ThreadList + UserMenu) + 헤더(모델 선택) + Thread 레이아웃
+    ModelSelect.tsx             모델 드롭다운 (GET /api/models, 미설치 모델은 비활성)
+    modelStore.ts               zustand + persist: 고른 모델을 localStorage에 기억
+    modelApi.ts                 GET /api/models
     ChatRuntimeProvider.tsx     useRemoteThreadListRuntime(대화 목록 서버 저장) + 대화별 useLocalRuntime
     conversationListAdapter.ts  대화 목록 ↔ /api/conversations (목록 · 생성 · 제목 · 보관 · 삭제)
     ConversationHistoryProvider.tsx  대화별 메시지 불러오기(load) · 저장(append/update)
@@ -111,7 +114,7 @@ src/
 ### 데이터 흐름 (채팅)
 
 1. 사용자가 입력 → assistant-ui가 `chatModelAdapter.run()` 호출
-2. 어댑터가 스레드 메시지를 `{role, content}[]`로 바꿔 `streamChatReply()`에 전달
+2. 어댑터가 스레드 메시지를 `{role, content}[]`로 바꾸고, `modelStore`의 선택 모델과 함께 `streamChatReply()`에 전달
 3. `fetch("/api/chat")` 스트림을 읽으며 조각을 누적해 매번 전체 텍스트를 yield
 4. assistant-ui가 마크다운으로 렌더링
 
@@ -123,7 +126,7 @@ src/
 1. 앱을 열면 `conversationListAdapter.list()` → 사이드바 목록
 2. 대화를 클릭하면 `ConversationHistoryProvider`의 `load()` → 그 대화의 메시지 불러오기
 3. 새 대화에서 첫 질문 → `initialize()`로 서버에 대화 생성 → 질문 · 답변마다 `append()`로 PUT 저장
-4. 첫 답변이 끝나면 `generateTitle()`이 첫 질문 앞 30자로 제목을 정해 PATCH로 저장
+4. 첫 답변이 끝나면 `generateTitle()`이 `POST /api/conversations/{id}/title` 호출 → 백엔드 LLM이 15자 이내로 요약해 저장
 5. 사이드바 `...` 메뉴의 이름 바꾸기 · 보관 · 삭제도 각각 PATCH / DELETE
 
 ## 6. 커스터마이징
@@ -134,7 +137,8 @@ src/
 | 앱 이름 / 로고 | `features/chat/ChatApp.tsx`, `components/AssistantMark.tsx`, `index.html` |
 | 로그인 · 가입 문구 | `features/auth/LoginForm.tsx`, `SignupForm.tsx`의 `AuthHeader` title · description |
 | 색상 테마 | `app/globals.css`의 CSS 변수 |
-| 모델 / 시스템 프롬프트 | 백엔드 `.env`, `app/config.py` |
+| 드롭다운에 나올 모델 | 백엔드 `.env`의 `LLM_MODELS` (+ `ollama pull`) |
+| 기본 모델 / 시스템 프롬프트 | 백엔드 `.env`의 `LLM_MODEL`, `app/config.py` |
 | shadcn 컴포넌트 추가 | `npx shadcn add <컴포넌트>` |
 
 ## 7. 문제 해결

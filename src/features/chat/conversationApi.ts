@@ -53,3 +53,7 @@ export function saveMessage(
 ): Promise<StoredMessage> {
   return requestJson("PUT", `${BASE}/${id}/messages/${encodeURIComponent(messageId)}`, message);
 }
+
+export function generateConversationTitle(id: string, question: string): Promise<Conversation> {
+  return requestJson("POST", `${BASE}/${id}/title`, { question });
+}

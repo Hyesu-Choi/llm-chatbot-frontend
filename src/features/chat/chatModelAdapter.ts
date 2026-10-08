@@ -2,6 +2,7 @@ import type { ChatModelAdapter, ThreadMessage } from "@assistant-ui/react";
 import { useAuthStore } from "@/features/auth/authStore";
 import { UnauthorizedError } from "@/lib/apiClient";
 import { messageText } from "./messageText";
+import { useModelStore } from "./modelStore";
 import { streamChatReply } from "./streamChatReply";
 import type { ChatMessage } from "./types";
 
@@ -16,7 +17,9 @@ export const chatModelAdapter: ChatModelAdapter = {
   async *run({ messages, abortSignal }) {
     let text = "";
     try {
-      for await (const chunk of streamChatReply(toChatMessages(messages), abortSignal)) {
+      const { selectedModel } = useModelStore.getState();
+      const chatMessages = toChatMessages(messages);
+      for await (const chunk of streamChatReply(chatMessages, selectedModel, abortSignal)) {
         text += chunk;
         yield { content: [{ type: "text", text }] };
       }

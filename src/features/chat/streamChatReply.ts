@@ -5,12 +5,13 @@ import type { ChatMessage } from "./types";
 // "/api/chat" 은 상대 경로라서 개발 중엔 Vite 프록시가 localhost:8000 으로 넘겨준다 (vite.config.ts).
 export async function* streamChatReply(
   messages: ChatMessage[],
+  model: string | null,
   signal?: AbortSignal,
 ): AsyncGenerator<string> {
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, model }),
     // signal이 abort 되면 fetch와 아래 reader.read()가 AbortError로 즉시 끝난다
     signal,
   });

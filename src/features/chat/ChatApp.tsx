@@ -3,6 +3,7 @@ import { Thread } from "@/components/assistant-ui/elements/thread.aui";
 import { AssistantMark } from "@/components/AssistantMark";
 import { LogoutIconButton, UserMenu } from "@/features/auth/UserMenu";
 import { ChatRuntimeProvider } from "./ChatRuntimeProvider";
+import { ModelSelect } from "./ModelSelect";
 import { ThreadWelcome } from "./ThreadWelcome";
 
 const THREAD_COMPONENTS = { Welcome: ThreadWelcome };
@@ -20,9 +21,16 @@ export function ChatApp() {
           <UserMenu />
         </aside>
         <section className="flex min-w-0 flex-1 flex-col">
-          <header className="flex h-14 shrink-0 items-center justify-between pr-3 pl-5 md:hidden">
-            <ChatBrand />
-            <LogoutIconButton />
+          <header className="flex h-14 shrink-0 items-center justify-between gap-3 pr-3 pl-5 md:justify-start md:px-6">
+            <div className="md:hidden">
+              <ChatBrand />
+            </div>
+            <div className="flex items-center gap-1">
+              <ModelSelect />
+              <div className="md:hidden">
+                <LogoutIconButton />
+              </div>
+            </div>
           </header>
           <Thread components={THREAD_COMPONENTS} />
         </section>
@@ -33,10 +41,10 @@ export function ChatApp() {
 
 function ChatBrand() {
   return (
-    <div className="flex items-center gap-2.5 px-1">
+    <div className="flex shrink-0 items-center gap-2.5 px-1">
       <AssistantMark className="size-8" />
       <div className="leading-tight">
-        <h1 className="text-[17px] font-bold">AI 챗봇</h1>
+        <h1 className="text-[17px] font-bold whitespace-nowrap">AI 챗봇</h1>
         <p className="text-xs text-muted-foreground">Ollama</p>
       </div>
     </div>

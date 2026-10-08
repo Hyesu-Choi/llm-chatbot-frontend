@@ -4,6 +4,7 @@ import { ConversationHistoryProvider } from "./ConversationHistoryProvider";
 import {
   createConversation,
   deleteConversation,
+  generateConversationTitle,
   getConversation,
   listConversations,
   updateConversation,
@@ -11,7 +12,6 @@ import {
 } from "./conversationApi";
 import { messageText } from "./messageText";
 
-const TITLE_MAX_LENGTH = 30;
 const FALLBACK_TITLE = "새 대화";
 
 function toThreadMetadata(conversation: Conversation) {
@@ -23,11 +23,18 @@ function toThreadMetadata(conversation: Conversation) {
   } as const;
 }
 
-function titleFrom(messages: readonly ThreadMessage[]): string {
+function firstQuestionText(messages: readonly ThreadMessage[]): string {
   const firstQuestion = messages.find((message) => message.role === "user");
-  const text = firstQuestion ? messageText(firstQuestion).trim().replace(/\s+/g, " ") : "";
-  if (text === "") return FALLBACK_TITLE;
-  return text.length > TITLE_MAX_LENGTH ? `${text.slice(0, TITLE_MAX_LENGTH)}…` : text;
+  return firstQuestion ? messageText(firstQuestion).trim() : "";
+}
+
+async function saveTitle(remoteId: string, messages: readonly ThreadMessage[]): Promise<string> {
+  const question = firstQuestionText(messages);
+  const conversation =
+    question === ""
+      ? await updateConversation(remoteId, { title: FALLBACK_TITLE })
+      : await generateConversationTitle(remoteId, question);
+  return conversation.title ?? FALLBACK_TITLE;
 }
 
 export const conversationListAdapter: RemoteThreadListAdapter = {
@@ -55,10 +62,8 @@ export const conversationListAdapter: RemoteThreadListAdapter = {
     await deleteConversation(remoteId);
   },
   async generateTitle(remoteId, messages) {
-    const title = titleFrom(messages);
     return createAssistantStream(async (controller) => {
-      await updateConversation(remoteId, { title });
-      controller.appendText(title);
+      controller.appendText(await saveTitle(remoteId, messages));
     });
   },
   unstable_Provider: ConversationHistoryProvider,
