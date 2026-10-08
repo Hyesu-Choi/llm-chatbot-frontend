@@ -1,3 +1,4 @@
+import { UnauthorizedError } from "@/features/auth/authApi";
 import type { ChatMessage } from "./types";
 
 // 백엔드 POST /api/chat 을 호출하고, 응답 본문이 도착하는 대로 텍스트 조각을 하나씩 내보낸다.
@@ -21,7 +22,8 @@ export async function* streamChatReply(
     const { error } = await response
       .json()
       .catch(() => ({ error: `요청 실패 (${response.status})` }));
-    throw new Error(error);
+    // 401: 쿠키가 만료됐거나 없음. 받는 쪽(chatModelAdapter)이 로그인 화면으로 보낼 수 있게 종류를 구분한다
+    throw response.status === 401 ? new UnauthorizedError(error) : new Error(error);
   }
 
   // response.body는 ReadableStream. reader로 도착한 바이트 덩어리(Uint8Array)를 하나씩 읽는다.

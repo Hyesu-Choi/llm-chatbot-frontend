@@ -1,4 +1,6 @@
 import type { ChatModelAdapter, ThreadMessage } from "@assistant-ui/react";
+import { UnauthorizedError } from "@/features/auth/authApi";
+import { useAuthStore } from "@/features/auth/authStore";
 import { streamChatReply } from "./streamChatReply";
 import type { ChatMessage } from "./types";
 
@@ -12,9 +14,18 @@ import type { ChatMessage } from "./types";
 export const chatModelAdapter: ChatModelAdapter = {
   async *run({ messages, abortSignal }) {
     let text = "";
-    for await (const chunk of streamChatReply(toChatMessages(messages), abortSignal)) {
-      text += chunk;
-      yield { content: [{ type: "text", text }] };
+    try {
+      for await (const chunk of streamChatReply(toChatMessages(messages), abortSignal)) {
+        text += chunk;
+        yield { content: [{ type: "text", text }] };
+      }
+    } catch (error) {
+      // 대화 도중 로그인이 만료되면 로그인 화면으로 돌려보낸다.
+      // getState(): 컴포넌트 밖(이 어댑터)에서 zustand 상태 · 함수를 꺼내 쓰는 방법
+      if (error instanceof UnauthorizedError) {
+        useAuthStore.getState().clearUser();
+      }
+      throw error;
     }
   },
 };

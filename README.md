@@ -50,7 +50,8 @@ npm run preview              # dist/ 를 로컬에서 미리보기 (http://local
 
 빌드 결과는 정적 파일이라 프록시가 없습니다. 배포할 때는 nginx 같은 웹서버에서
 `/api/*`를 백엔드로 넘기거나, 백엔드 `CORS_ORIGINS`에 프론트 주소를 추가하고
-`streamChatReply.ts`의 요청 주소를 절대 URL로 바꿔야 합니다.
+`streamChatReply.ts`, `authApi.ts`의 요청 주소를 절대 URL로 바꿔야 합니다.
+같은 출처로 두는 쪽(프록시)을 추천합니다. 로그인 쿠키가 `SameSite=Lax`라서 다른 도메인이면 쿠키가 안 붙을 수 있습니다.
 
 ## 4. 스크립트
 
@@ -67,22 +68,42 @@ npm run preview              # dist/ 를 로컬에서 미리보기 (http://local
 ```
 src/
   main.tsx                      엔트리
-  app/App.tsx                   TooltipProvider + ChatApp
-  app/globals.css               Tailwind, shadcn 테마 변수, Pretendard 폰트
-  features/chat/                ← 직접 작성한 코드는 전부 여기
-    ChatApp.tsx                 사이드바(ThreadList) + Thread 레이아웃
+  app/App.tsx                   TooltipProvider + AuthGate + ChatApp
+  app/globals.css               Tailwind, shadcn 테마 변수(토스 컬러), Pretendard 폰트
+  components/AssistantMark.tsx  로고 아이콘 (로그인 · 채팅 화면 공용)
+  features/auth/                ← 로그인 · 가입 (토스 스타일)
+    AuthGate.tsx                앱 열 때 /api/auth/me 확인 → 로그인 화면 또는 children(채팅)
+    AuthScreen.tsx              로그인 ↔ 가입 전환, 폰 너비 레이아웃
+    LoginForm.tsx / SignupForm.tsx   각 폼 (가입은 필드별 검사, blur 후 오류 표시)
+    TextField.tsx               라벨 + 큰 글자 + 밑줄 입력 필드
+    SubmitButton.tsx            하단 큰 파란 버튼 (비활성 · 로딩 상태)
+    AuthHeader.tsx              로고 + 두 줄 제목 + 안내 문구
+    UserMenu.tsx                사이드바 사용자 정보 + 로그아웃, 모바일 로그아웃 아이콘
+    authStore.ts                zustand: checking / loggedIn / loggedOut, 사용자 정보, signOut
+    authApi.ts                  signup · login · logout · fetchMe, UnauthorizedError
+    validation.ts               이메일 · 비밀번호 규칙 (백엔드와 같은 길이)
+    types.ts                    User, Credentials
+  features/chat/                ← 채팅
+    ChatApp.tsx                 사이드바(ThreadList + UserMenu) + Thread 레이아웃
     ChatRuntimeProvider.tsx     useLocalRuntime(chatModelAdapter)
     chatModelAdapter.ts         assistant-ui 메시지 → 백엔드 요청, 누적 텍스트 yield
-    streamChatReply.ts          POST /api/chat 스트림 읽기, 오류 JSON → Error
+    streamChatReply.ts          POST /api/chat 스트림 읽기, 오류 JSON → Error (401은 UnauthorizedError)
     ThreadWelcome.tsx           빈 스레드 환영 화면 + 추천 질문 4개
-    AssistantMark.tsx           로고 아이콘
     types.ts                    ChatMessage 타입
   components/assistant-ui/      assistant-ui 프리셋 (shadcn CLI 생성, 직접 수정 최소화)
   components/ui/                shadcn/ui 컴포넌트
   lib/utils.ts                  cn()
 ```
 
-### 데이터 흐름
+### 로그인 흐름
+
+1. 앱을 열면 `AuthGate`가 `GET /api/auth/me` 호출 → 200이면 채팅, 401이면 로그인 화면
+2. 로그인 · 가입 성공 → 백엔드가 `access_token` 쿠키(httpOnly)를 내려주고 `authStore`가 loggedIn
+3. 이후 `/api/*` 요청에는 브라우저가 쿠키를 자동으로 붙임 (프론트 코드에서 토큰을 다루지 않음)
+4. 대화 중 401(쿠키 만료) → `chatModelAdapter`가 `clearUser()` → 로그인 화면
+5. 로그아웃하면 채팅 화면이 언마운트되면서 메모리의 대화도 함께 사라짐
+
+### 데이터 흐름 (채팅)
 
 1. 사용자가 입력 → assistant-ui가 `chatModelAdapter.run()` 호출
 2. 어댑터가 스레드 메시지를 `{role, content}[]`로 바꿔 `streamChatReply()`에 전달
@@ -97,7 +118,8 @@ src/
 | 바꾸고 싶은 것 | 위치 |
 | --- | --- |
 | 추천 질문 | `features/chat/ThreadWelcome.tsx`의 `SUGGESTIONS` |
-| 앱 이름 / 로고 | `features/chat/ChatApp.tsx`, `AssistantMark.tsx`, `index.html` |
+| 앱 이름 / 로고 | `features/chat/ChatApp.tsx`, `components/AssistantMark.tsx`, `index.html` |
+| 로그인 · 가입 문구 | `features/auth/LoginForm.tsx`, `SignupForm.tsx`의 `AuthHeader` title · description |
 | 색상 테마 | `app/globals.css`의 CSS 변수 |
 | 모델 / 시스템 프롬프트 | 백엔드 `.env`, `app/config.py` |
 | shadcn 컴포넌트 추가 | `npx shadcn add <컴포넌트>` |
@@ -106,9 +128,11 @@ src/
 
 | 증상 | 원인 / 조치 |
 | --- | --- |
-| "LLM 서버(...)에 연결할 수 없습니다" | Ollama가 꺼져 있음. `ollama serve` 또는 Ollama 앱 실행 |
+| "LLM 서버(...)에 연결할 수 없습니다" | Ollama가 꺼져 있음. `brew services run ollama` 또는 `ollama serve` |
 | "모델 ...을 찾을 수 없습니다" | `ollama pull <모델>` 또는 백엔드 `.env`의 `LLM_MODEL` 오타 확인 |
 | 답변 끝에 `(LLM 오류: ...)` 문구 | 스트리밍 도중 Ollama가 보낸 오류. 다시 시도 |
 | "요청 실패 (504)" 또는 프록시 오류 | 백엔드 미실행. 8000 포트 확인 |
+| 로그인 화면에서 "요청에 실패했어요 (500)" 등 | 백엔드 · DB 확인. `docker compose up -d`, `uv run alembic upgrade head` |
+| 새로고침하면 로그아웃됨 | 쿠키 만료(기본 7일) 또는 백엔드 `JWT_SECRET`이 바뀜 |
 | 빌드 시 500kB 청크 경고 | assistant-ui 번들 크기 경고일 뿐 동작엔 문제 없음 |
 | `components/assistant-ui/*` lint 경고 | 생성 코드. 무시해도 됨 |

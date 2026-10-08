@@ -1,6 +1,6 @@
 import { ThreadPrimitive } from "@assistant-ui/react";
 import { ChevronRightIcon } from "lucide-react";
-import { AssistantMark } from "./AssistantMark";
+import { AssistantMark } from "@/components/AssistantMark";
 
 // 대화 시작 전 화면에 보여줄 추천 질문. 항목을 추가·수정하면 바로 화면에 반영된다.
 const SUGGESTIONS = [
