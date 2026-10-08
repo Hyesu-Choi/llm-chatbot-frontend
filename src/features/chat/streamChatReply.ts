@@ -6,12 +6,13 @@ import type { ChatMessage } from "./types";
 export async function* streamChatReply(
   messages: ChatMessage[],
   model: string | null,
+  persona: string | null,
   signal?: AbortSignal,
 ): AsyncGenerator<string> {
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages, model }),
+    body: JSON.stringify({ messages, model, persona }),
     // signal이 abort 되면 fetch와 아래 reader.read()가 AbortError로 즉시 끝난다
     signal,
   });

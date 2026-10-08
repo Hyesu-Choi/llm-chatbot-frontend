@@ -84,7 +84,10 @@ src/
     validation.ts               이메일 · 비밀번호 규칙 (백엔드와 같은 길이)
     types.ts                    User, Credentials
   features/chat/                ← 채팅
-    ChatApp.tsx                 사이드바(ThreadList + UserMenu) + 헤더(모델 선택) + Thread 레이아웃
+    ChatApp.tsx                 사이드바(ThreadList + UserMenu) + 헤더(역할 · 모델 선택) + Thread 레이아웃
+    PersonaSelect.tsx           역할 드롭다운 (GET /api/personas)
+    personaStore.ts             zustand + persist: 고른 역할을 localStorage에 기억
+    personaApi.ts               GET /api/personas
     ModelSelect.tsx             모델 드롭다운 (GET /api/models, 미설치 모델은 비활성)
     modelStore.ts               zustand + persist: 고른 모델을 localStorage에 기억
     modelApi.ts                 GET /api/models
@@ -114,7 +117,7 @@ src/
 ### 데이터 흐름 (채팅)
 
 1. 사용자가 입력 → assistant-ui가 `chatModelAdapter.run()` 호출
-2. 어댑터가 스레드 메시지를 `{role, content}[]`로 바꾸고, `modelStore`의 선택 모델과 함께 `streamChatReply()`에 전달
+2. 어댑터가 스레드 메시지를 `{role, content}[]`로 바꾸고, 선택한 모델 · 역할과 함께 `streamChatReply()`에 전달
 3. `fetch("/api/chat")` 스트림을 읽으며 조각을 누적해 매번 전체 텍스트를 yield
 4. assistant-ui가 마크다운으로 렌더링
 
@@ -128,6 +131,7 @@ src/
 3. 새 대화에서 첫 질문 → `initialize()`로 서버에 대화 생성 → 질문 · 답변마다 `append()`로 PUT 저장
 4. 첫 답변이 끝나면 `generateTitle()`이 `POST /api/conversations/{id}/title` 호출 → 백엔드 LLM이 15자 이내로 요약해 저장
 5. 사이드바 `...` 메뉴의 이름 바꾸기 · 보관 · 삭제도 각각 PATCH / DELETE
+6. 다시 생성 · 질문 수정은 같은 부모 아래 새 메시지(가지)가 생기는 것. 메시지마다 `parent_message_id`를 저장해서 새로고침해도 `< 1 / 2 >`로 넘겨볼 수 있음
 
 ## 6. 커스터마이징
 
@@ -138,7 +142,8 @@ src/
 | 로그인 · 가입 문구 | `features/auth/LoginForm.tsx`, `SignupForm.tsx`의 `AuthHeader` title · description |
 | 색상 테마 | `app/globals.css`의 CSS 변수 |
 | 드롭다운에 나올 모델 | 백엔드 `.env`의 `LLM_MODELS` (+ `ollama pull`) |
-| 기본 모델 / 시스템 프롬프트 | 백엔드 `.env`의 `LLM_MODEL`, `app/config.py` |
+| 기본 모델 | 백엔드 `.env`의 `LLM_MODEL` |
+| 역할 (시스템 프롬프트) | 백엔드 `app/personas.py` |
 | shadcn 컴포넌트 추가 | `npx shadcn add <컴포넌트>` |
 
 ## 7. 문제 해결

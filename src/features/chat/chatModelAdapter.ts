@@ -3,6 +3,7 @@ import { useAuthStore } from "@/features/auth/authStore";
 import { UnauthorizedError } from "@/lib/apiClient";
 import { messageText } from "./messageText";
 import { useModelStore } from "./modelStore";
+import { usePersonaStore } from "./personaStore";
 import { streamChatReply } from "./streamChatReply";
 import type { ChatMessage } from "./types";
 
@@ -18,8 +19,10 @@ export const chatModelAdapter: ChatModelAdapter = {
     let text = "";
     try {
       const { selectedModel } = useModelStore.getState();
+      const { selectedPersona } = usePersonaStore.getState();
       const chatMessages = toChatMessages(messages);
-      for await (const chunk of streamChatReply(chatMessages, selectedModel, abortSignal)) {
+      const chunks = streamChatReply(chatMessages, selectedModel, selectedPersona, abortSignal);
+      for await (const chunk of chunks) {
         text += chunk;
         yield { content: [{ type: "text", text }] };
       }

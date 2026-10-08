@@ -4,6 +4,7 @@ import { AssistantMark } from "@/components/AssistantMark";
 import { LogoutIconButton, UserMenu } from "@/features/auth/UserMenu";
 import { ChatRuntimeProvider } from "./ChatRuntimeProvider";
 import { ModelSelect } from "./ModelSelect";
+import { PersonaSelect } from "./PersonaSelect";
 import { ThreadWelcome } from "./ThreadWelcome";
 
 const THREAD_COMPONENTS = { Welcome: ThreadWelcome };
@@ -22,10 +23,9 @@ export function ChatApp() {
         </aside>
         <section className="flex min-w-0 flex-1 flex-col">
           <header className="flex h-14 shrink-0 items-center justify-between gap-3 pr-3 pl-5 md:justify-start md:px-6">
-            <div className="md:hidden">
-              <ChatBrand />
-            </div>
-            <div className="flex items-center gap-1">
+            <AssistantMark className="size-8 md:hidden" />
+            <div className="flex min-w-0 items-center gap-1.5">
+              <PersonaSelect />
               <ModelSelect />
               <div className="md:hidden">
                 <LogoutIconButton />
