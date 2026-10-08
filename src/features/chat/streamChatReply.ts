@@ -1,5 +1,6 @@
 import { toApiError } from "@/lib/apiClient";
 import { formatRagSources, parseRagSources, RAG_SOURCES_HEADER } from "./ragSources";
+import { formatToolCalls, parseToolCalls, TOOL_CALLS_HEADER } from "./toolCalls";
 import type { ChatMessage } from "./types";
 
 // 백엔드 POST /api/chat 을 호출하고, 응답 본문이 도착하는 대로 텍스트 조각을 하나씩 내보낸다.
@@ -29,6 +30,9 @@ export async function* streamChatReply(
 
   // response.body는 ReadableStream. reader로 도착한 바이트 덩어리(Uint8Array)를 하나씩 읽는다.
   // response.text()를 쓰면 답변이 끝날 때까지 기다려야 해서 스트리밍 효과가 사라진다.
+  const toolCalls = parseToolCalls(response.headers.get(TOOL_CALLS_HEADER));
+  if (toolCalls.length > 0) yield formatToolCalls(toolCalls);
+
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
 

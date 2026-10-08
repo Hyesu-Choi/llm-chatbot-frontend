@@ -18,3 +18,9 @@ export function formatRagSources(sources: RagSource[]): string {
   const items = sources.map((source, index) => `[${index + 1}] ${source.filename} (조각 ${source.chunk})`);
   return `\n\n---\n📎 **참고한 문서** · ${items.join(" · ")}`;
 }
+
+const RAG_SOURCES_TRAILER = /\n*---\n📎 \*\*참고한 문서\*\*.*$/s;
+
+export function stripRagSources(text: string): string {
+  return text.replace(RAG_SOURCES_TRAILER, "");
+}

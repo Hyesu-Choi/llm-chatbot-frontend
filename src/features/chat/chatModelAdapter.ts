@@ -4,6 +4,8 @@ import { UnauthorizedError } from "@/lib/apiClient";
 import { messageText } from "./messageText";
 import { useModelStore } from "./modelStore";
 import { usePersonaStore } from "./personaStore";
+import { stripRagSources } from "./ragSources";
+import { stripToolCalls } from "./toolCalls";
 import { streamChatReply } from "./streamChatReply";
 import type { ChatMessage } from "./types";
 
@@ -47,7 +49,7 @@ function toChatMessages(messages: readonly ThreadMessage[]): ChatMessage[] {
     .map((message) => ({
       // 위 filter로 role이 좁혀졌지만 TypeScript가 그걸 추론하지 못해서 as로 알려준다
       role: message.role as ChatMessage["role"],
-      content: messageText(message),
+      content: stripRagSources(stripToolCalls(messageText(message))),
     }))
     // 내용이 빈 메시지(예: 오류로 비어버린 답변)는 보내지 않는다
     .filter((message) => message.content.length > 0);

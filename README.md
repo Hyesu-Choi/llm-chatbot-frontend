@@ -101,7 +101,8 @@ src/
     ConversationHistoryProvider.tsx  대화별 메시지 불러오기(load) · 저장(append/update)
     conversationApi.ts          /api/conversations 호출 함수
     messageText.ts              assistant-ui 메시지에서 텍스트만 추출
-    ragSources.ts               X-RAG-Sources 헤더 읽기 → 답변 끝 "📎 참고한 문서" 문구
+    ragSources.ts               X-RAG-Sources 헤더 → 답변 끝 "📎 참고한 문서" 문구 (보낼 땐 떼어 냄)
+    toolCalls.ts                X-Tool-Calls 헤더 → 답변 위 "🔧 날씨 조회 · 서울" 문구 (보낼 땐 떼어 냄)
     chatModelAdapter.ts         assistant-ui 메시지 → 백엔드 요청, 누적 텍스트 yield
     streamChatReply.ts          POST /api/chat 스트림 읽기, 오류 JSON → Error (401은 UnauthorizedError)
     ThreadWelcome.tsx           빈 스레드 환영 화면 + 추천 질문 4개
@@ -125,7 +126,8 @@ src/
 1. 사용자가 입력 → assistant-ui가 `chatModelAdapter.run()` 호출
 2. 어댑터가 스레드 메시지를 `{role, content}[]`로 바꾸고, 선택한 모델 · 역할과 함께 `streamChatReply()`에 전달
 3. `fetch("/api/chat")` 스트림을 읽으며 조각을 누적해 매번 전체 텍스트를 yield
-   - 응답 헤더 `X-RAG-Sources`가 있으면 스트림이 끝난 뒤 "📎 참고한 문서" 줄을 덧붙임 (저장되는 답변에도 포함)
+   - 응답 헤더 `X-Tool-Calls`가 있으면 답변 맨 위에 "🔧 …" 줄, `X-RAG-Sources`가 있으면 끝에 "📎 참고한 문서" 줄을 붙임 (저장되는 답변에도 포함)
+   - 다음 질문 때 대화 기록으로 보낼 때는 이 장식 줄을 떼어 냄 (`stripToolCalls`, `stripRagSources`). 안 떼면 모델이 답변을 "🔧 …"로 시작하는 걸 따라 함
 4. assistant-ui가 마크다운으로 렌더링
 
 > assistant-ui의 `ChatModelAdapter.run`은 델타가 아니라 **지금까지의 전체 텍스트**를
